@@ -153,7 +153,7 @@ chemical-visualizer/
 
 ## 🧪 Sample Data
 
-To test the application, use the provided `sample_equipment_data.csv` file located in the root directory. It contains the following columns:
+To test the application, use the provided [`sample_equipment_data.csv`](./sample_equipment_data.csv) file located in the root directory. It contains the following columns:
 
 * `Equipment Name`
 * `Type` (Pump, Valve, Exchanger, Tank)
