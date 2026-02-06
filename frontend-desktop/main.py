@@ -1,7 +1,9 @@
+from importlib.resources import files
 import sys
 import os
 from PyQt5.QtWidgets import QApplication
 from ui.main_window import MainWindow
+
 
 def main():
     # Helper to handle high DPI scaling (common on modern Windows)

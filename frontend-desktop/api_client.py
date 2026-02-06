@@ -22,7 +22,7 @@ class APIClient:
         try:
             with open(file_path, 'rb') as f:
                 files = {'file': (os.path.basename(file_path), f, 'text/csv')}
-                response = requests.post(upload_url, files=files)
+                response = requests.post(upload_url, files=files, auth=('admin', 'password123'))
                 
             response.raise_for_status()
             return response.json()

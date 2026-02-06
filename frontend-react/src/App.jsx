@@ -99,9 +99,10 @@ function App() {
       const response = await axios.post(`${API_BASE}/api/upload/`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
+          'Authorization': 'Basic ' + btoa('admin:password123') // HARDCODED FOR DEMO
         },
       });
-      console.log(response);
+      // console.log(response);
       setStats(response.data.statistics);
     } catch (err) {
       setError('Failed to upload file. Make sure Server is running!');
@@ -371,7 +372,12 @@ function App() {
                   </div>
                 </CardContent>
               </Card>
-
+              <button
+                onClick={() => window.open(`${API_BASE}/api/export-pdf/${stats.batch_id}/`, '_blank')}
+                style={{ marginTop: '20px', padding: '10px 20px', background: 'green', color: 'white', border: 'none' }}
+              >
+                Download PDF Report
+              </button>
             </div>
           </div>
         )}

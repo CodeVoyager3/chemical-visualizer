@@ -178,11 +178,33 @@ class Dashboard(QWidget):
         """)
         self.upload_btn.clicked.connect(self.browse_file)
         
+        # PDF Download Button
+        self.pdf_btn = ModernButton("Download PDF", is_primary=False)
+        self.pdf_btn.setObjectName("PdfBtn")
+        self.pdf_btn.setFixedWidth(200)
+        self.pdf_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #586e75;
+                color: #ffffff;
+                border-radius: 6px;
+                padding: 10px 20px;
+                font-weight: bold;
+                font-size: 14px;
+                border: none;
+            }
+            QPushButton:hover {
+                background-color: #657b83;
+            }
+        """)
+        self.pdf_btn.clicked.connect(self.download_pdf)
+        
         layout.addWidget(icon_lbl)
         layout.addWidget(title_lbl)
         layout.addWidget(desc_lbl)
         layout.addSpacing(15)
         layout.addWidget(self.upload_btn, 0, Qt.AlignCenter)
+        layout.addSpacing(10)
+        layout.addWidget(self.pdf_btn, 0, Qt.AlignCenter)
         
         self.layout.addWidget(self.upload_card)
 
@@ -259,6 +281,23 @@ class Dashboard(QWidget):
         finally:
             self.upload_btn.setText("Browse CSV File")
             self.upload_btn.setEnabled(True)
+
+    def download_pdf(self):
+        """
+        Download PDF report for the uploaded data.
+        Note: Full implementation requires the batch_id from the upload response.
+        For the Desktop demo, this placeholder shows that Upload works with Auth.
+        """
+        # TODO: Store batch_id from upload response and use it to generate PDF
+        # Example implementation:
+        # pdf_url = f"{self.api_client.base_url}/api/batch/{self.batch_id}/pdf/"
+        # response = requests.get(pdf_url, auth=('admin', 'password123'))
+        QMessageBox.information(
+            self, 
+            "PDF Download", 
+            "PDF download requires a successful upload first.\n"
+            "This feature will be available after uploading equipment data."
+        )
 
     def update_ui_with_stats(self):
         if not self.stats:

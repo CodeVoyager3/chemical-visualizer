@@ -5,6 +5,8 @@ from rest_framework import status
 import pandas as pd
 from .models import UploadBatch, ChemicalEquipment
 from .serializers import UploadBatchSerializer
+from django.http import HttpResponse
+from reportlab.pdfgen import canvas
 
 class FileUploadView(APIView):
     parser_classes = (MultiPartParser, FormParser)
@@ -71,3 +73,55 @@ class FileUploadView(APIView):
         except Exception as e:
             batch.delete() # Clean up if something crashes
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+def generate_pdf(request, batch_id):
+    try:
+        batch = UploadBatch.objects.get(id=batch_id)
+        equipments = batch.equipments.all()
+        
+        # Create the HttpResponse object with PDF headers
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="batch_{batch_id}_report.pdf"'
+
+        # Create the PDF object, using the response object as its "file."
+        p = canvas.Canvas(response)
+        
+        # Draw text on the PDF
+        p.setFont("Helvetica-Bold", 16)
+        p.drawString(100, 800, f"Chemical Equipment Report - Batch {batch_id}")
+        
+        p.setFont("Helvetica", 12)
+        p.drawString(100, 780, f"Uploaded at: {batch.uploaded_at.strftime('%Y-%m-%d %H:%M')}")
+        
+        y = 750
+        p.drawString(100, y, "Summary Statistics:")
+        y -= 20
+        
+        # Calculate stats (simple version)
+        total = equipments.count()
+        avg_flow = sum(e.flowrate for e in equipments) / total if total else 0
+        
+        p.drawString(120, y, f"Total Equipment: {total}")
+        p.drawString(120, y-20, f"Avg Flowrate: {round(avg_flow, 2)}")
+        
+        y -= 60
+        p.drawString(100, y, "Equipment List (First 20 items):")
+        y -= 20
+        
+        # List items
+        p.setFont("Courier", 10)
+        for equipment in equipments[:20]: # Limit to 20 for one page demo
+            line = f"{equipment.equipment_name} | {equipment.equipment_type} | Flow: {equipment.flowrate}"
+            p.drawString(100, y, line)
+            y -= 15
+            if y < 50: # New page if full
+                p.showPage()
+                y = 800
+
+        # Close the PDF object cleanly, and we're done.
+        p.showPage()
+        p.save()
+        return response
+
+    except UploadBatch.DoesNotExist:
+        return HttpResponse("Batch not found", status=404)
