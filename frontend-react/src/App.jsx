@@ -117,28 +117,39 @@ function App() {
     setLoginError('');
     setLoginLoading(true);
 
-    try {
-      const auth = 'Basic ' + btoa(`${username}:${password}`);
+    if (!username.trim() || !password) {
+      setLoginError('Please enter both username and password');
+      setLoginLoading(false);
+      return;
+    }
 
-      // Test authentication with an OPTIONS request
-      const response = await axios.options(`${API_BASE}/api/upload/`, {
+    // Create auth header and store it
+    const auth = 'Basic ' + btoa(`${username}:${password}`);
+
+    try {
+      // Try a real API call to validate credentials
+      // Using GET with a small timeout to quickly validate
+      await axios.get(`${API_BASE}/api/upload/`, {
         headers: { 'Authorization': auth },
         timeout: 10000
       });
 
-      // If we don't get 401, credentials are valid
-      if (response.status !== 401) {
+      // If successful (any non-401 response), credentials are valid
+      setAuthHeader(auth);
+      setIsAuthenticated(true);
+      setShowLoginModal(false);
+      localStorage.setItem('authHeader', auth);
+    } catch (err) {
+      if (err.response?.status === 401) {
+        setLoginError('Invalid username or password');
+      } else if (err.response?.status === 405) {
+        // Method not allowed but auth passed - credentials are valid
         setAuthHeader(auth);
         setIsAuthenticated(true);
         setShowLoginModal(false);
         localStorage.setItem('authHeader', auth);
-      }
-    } catch (err) {
-      if (err.response?.status === 401) {
-        setLoginError('Invalid username or password');
       } else {
-        // Network error or server not responding - allow login anyway
-        const auth = 'Basic ' + btoa(`${username}:${password}`);
+        // Network error or server issue - allow login and let upload validate
         setAuthHeader(auth);
         setIsAuthenticated(true);
         setShowLoginModal(false);
